@@ -1,0 +1,68 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: airports-app
+  namespace: airports
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: airports
+    spec:
+      containers:
+      - name: countries
+        image: bihanc/airport:latest
+        ports:
+        - containerPort: 8080
+        livenessProbe:
+         httpGet:
+          path: /health/live
+          port: 8080
+          httpHeaders:
+          - name: X-Custom-Header
+            value: Awesome
+         initialDelaySeconds: 15
+         timeoutSeconds: 1
+        readinessProbe:
+         httpGet:
+          path: /health/ready
+          port: 8080
+          httpHeaders:
+          - name: X-Custom-Header
+            value: Awesome
+         initialDelaySeconds: 5
+         timeoutSeconds: 1
+         periodSeconds: 1
+
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: airports-service
+  namespace: airports
+spec:
+  type: NodePort
+  selector:
+      app: airports
+  ports:
+      - protocol: TCP
+        port: 8000
+        targetPort: 8080
+        name: ui
+
+---
+
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: airport-ingress
+spec:
+  rules:
+  - host: airports.test.com
+    http:
+      paths:
+      - path: /countries
+        backend:
+          serviceName: countries-service
+          servicePort: 8000
