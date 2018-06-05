@@ -12,7 +12,7 @@ spec:
     spec:
       containers:
       - name: countries
-        image: bihanc/airport:latest
+        image: bihanc/airport
         ports:
         - containerPort: 8080
         livenessProbe:
